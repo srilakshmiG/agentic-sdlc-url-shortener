@@ -1,0 +1,62 @@
+spring:
+  application:
+    name: agentic-sdlc-shortener
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/shortener}
+    username: ${DB_USER:shortener}
+    password: ${DB_PASSWORD:shortener}
+  flyway:
+    enabled: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    producer:
+      acks: all
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        enable.idempotence: true
+        request.timeout.ms: 4000
+        delivery.timeout.ms: 10000
+        max.block.ms: 2000
+    consumer:
+      group-id: click-aggregator
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      ack-mode: record
+  mvc:
+    problemdetails:
+      enabled: true
+
+server:
+  port: 8080
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+app:
+  public-base-url: ${PUBLIC_BASE_URL:http://localhost:8480}
+  trust-proxy: ${TRUST_PROXY:false}
+  rate-limit:
+    creates-per-minute: ${CREATES_PER_MINUTE:60}
+  kafka:
+    click-topic: link.clicks
+    dead-letter-topic: link.clicks.dlt
+  orchestrator:
+    codebase-path: ${CODEBASE_PATH:/app/codebase}
+    retry-backoff-ms: ${RETRY_BACKOFF_MS:300}
+    stage-delay-ms: ${STAGE_DELAY_MS:600}
+    max-rejections: 2
